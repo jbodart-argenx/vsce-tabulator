@@ -9,9 +9,29 @@
          href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/tabulator.min.css"
          rel="stylesheet"
       />
+      <style>
+         body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+         }
+         #header {
+            flex: 0 0 auto;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+         }
+         #tabulator-table {
+            flex: 1 1 auto;
+            overflow-y: auto;
+         }
+      </style>
    </head>
    <body>
-      <button id="requestDataButton">Request Data</button>
+      <div id="header">
+         <button id="requestDataButton">Request Data</button>
+      </div>
       <div id="tabulator-table"></div>
       <script>
          const vscode = acquireVsCodeApi();
