@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "vsce-tabulator.helloWorld",
-        "title": "Hello World"
+        "command": "vsce-tabulator.showTabulator",
+        "title": "Show Tabulator"
       }
     ]
   },
