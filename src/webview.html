@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <title>Tabulator Table</title>
+      <link
+         href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/tabulator.min.css"
+         rel="stylesheet"
+      />
+   </head>
+   <body>
+      <div id="table"></div>
+      <script src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+      <script>
+         const vscode = acquireVsCodeApi();
+
+         // Sample data
+         const tableData = [
+            { id: 1, name: "Oli Bob", age: "12", col: "red", dob: "" },
+            {
+               id: 2,
+               name: "Mary May",
+               age: "1",
+               col: "blue",
+               dob: "14/05/1982",
+            },
+            // Add more rows as needed
+         ];
+
+         // Create Tabulator table
+         const table = new Tabulator("#table", {
+            data: tableData,
+            layout: "fitColumns",
+            columns: [
+               { title: "Name", field: "name", editor: "input" },
+               {
+                  title: "Age",
+                  field: "age",
+                  hozAlign: "left",
+                  sorter: "number",
+                  editor: true,
+               },
+               {
+                  title: "Favourite Color",
+                  field: "col",
+                  sorter: "string",
+                  editor: "input",
+               },
+               {
+                  title: "Date Of Birth",
+                  field: "dob",
+                  sorter: "date",
+                  hozAlign: "center",
+               },
+            ],
+            height: "100%", // set height of table
+            movableColumns: true, // allow column order to be changed
+            resizableRows: true, // allow row height to be changed
+            autoColumns: true, // create columns from data field names
+         });
+
+         // Handle messages from extension script
+         window.addEventListener("message", (event) => {
+            const message = event.data;
+            switch (message.command) {
+               case "updateData":
+                  table.setData(message.data);
+                  break;
+            }
+         });
+      </script>
+   </body>
+</html>
