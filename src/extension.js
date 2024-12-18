@@ -5,17 +5,24 @@ const fs = require('fs');
 function activate(context) {
 	context.subscriptions.push(vscode.commands.registerCommand('vsce-tabulator.showTabulator', () => {
 		const panel = vscode.window.createWebviewPanel(
-			'tabulatorTable',
+			'tabulatorWebview',
 			'Tabulator Table',
 			vscode.ViewColumn.One,
 			{
 				enableScripts: true,
-				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'src'))],
+				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
 			}
 		);
 
 		const htmlPath = path.join(context.extensionPath, 'src', 'webview.html');
-		const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+		let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+		const tabulatorJsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'tabulator.min.js')));
+		const tabulatorCssUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'tabulator.min.css')));
+
+		htmlContent = htmlContent.replace('src="../media/tabulator.min.js"', `src="${tabulatorJsUri}"`);
+		htmlContent = htmlContent.replace('href="../media/tabulator.min.css"', `href="${tabulatorCssUri}"`);
+
 		panel.webview.html = htmlContent;
 
 		panel.webview.onDidReceiveMessage(

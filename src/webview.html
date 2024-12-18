@@ -4,9 +4,9 @@
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Tabulator Table</title>
-      <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+      <script src="../media/tabulator.min.js"></script>
       <link
-         href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css"
+         href="../media/tabulator.min.css"
          rel="stylesheet"
       />
       <style>
@@ -20,8 +20,8 @@
          #header {
             flex: 0 0 auto;
             padding: 10px;
-            background-color: #f0f0f0;
-            border-bottom: 1px solid #ccc;
+            /* background-color: #f0f0f0;
+            border-bottom: 1px solid #ccc; */
          }
          #tabulator-table {
             flex: 1 1 auto;
@@ -210,24 +210,24 @@
 
                const style = document.getElementById("dynamic-styles");
                style.textContent = `
-                    .tabulator-tableHolder::-webkit-scrollbar {
-                        width: 8px;
-                        height: 8px;
-                    }
-                    .tabulator-tableHolder::-webkit-scrollbar-track {
-                        background: #f0f0f0;
-                    }
-                    .tabulator-tableHolder::-webkit-scrollbar-thumb {
-                        background: #888;
-                        border-radius: 4px;
-                    }
-                    .tabulator-tableHolder::-webkit-scrollbar-thumb:hover {
-                        background: #555;
-                    }
-                    .tabulator-tableHolder::-webkit-scrollbar-button {
-                        display: none; /* Hide buttons if not needed */
-                    }
-                `;
+                  .tabulator-tableHolder::-webkit-scrollbar {
+                     width: 8px;
+                     height: 8px;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-track {
+                     background: #f0f0f0;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-thumb {
+                     background: #888;
+                     border-radius: 4px;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-thumb:hover {
+                     background: #555;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-button {
+                     display: none; /* Hide buttons if not needed */
+                  }
+               `;
             }
          }
 
