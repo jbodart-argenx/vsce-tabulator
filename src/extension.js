@@ -1,36 +1,55 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
+const path = require('path');
+const fs = require('fs');
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-
-/**
- * @param {vscode.ExtensionContext} context
- */
 function activate(context) {
+	context.subscriptions.push(vscode.commands.registerCommand('vsce-tabulator.showTabulator', () => {
+		const panel = vscode.window.createWebviewPanel(
+			'tabulatorTable',
+			'Tabulator Table',
+			vscode.ViewColumn.One,
+			{
+				enableScripts: true,
+				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
+			}
+		);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vsce-tabulator" is now active!');
+		const htmlPath = path.join(context.extensionPath, 'media', 'index.html');
+		const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+		panel.webview.html = htmlContent;
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('vsce-tabulator.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from vsce-tabulator!');
-	});
-
-	context.subscriptions.push(disposable);
+		panel.webview.onDidReceiveMessage(
+			message => {
+				switch (message.command) {
+					case 'requestData':
+						// Handle data request and send data to webview
+						const data = getData(); // Implement your data retrieval logic
+						panel.webview.postMessage({ command: 'updateData', data: data });
+						break;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
+	}));
 }
 
-// This method is called when your extension is deactivated
-function deactivate() {}
+function deactivate() { }
+
+function getData() {
+	// Replace with your data retrieval logic
+	return [
+		{id:1, name:"Oli Bob", progress:12, gender:"male", rating:1, col:"red", dob:"19/02/1984", car:1},
+		{id:2, name:"Mary May", progress:1, gender:"female", rating:2, col:"blue", dob:"14/05/1982", car:true},
+		{id:3, name:"Christine Lobowski", progress:42, gender:"female", rating:0, col:"green", dob:"22/05/1982", car:"true"},
+		{id:4, name:"Brendon Philips", progress:100, gender:"male", rating:1, col:"orange", dob:"01/08/1980"},
+		{id:5, name:"Margret Marmajuke", progress:16, gender:"female", rating:5, col:"yellow", dob:"31/01/1999"},
+		{id:6, name:"Frank Harbours", progress:38, gender:"male", rating:4, col:"red", dob:"12/05/1966", car:1},
+		// Add more rows as needed
+	];
+}
 
 module.exports = {
 	activate,
 	deactivate
-}
+};
