@@ -27,6 +27,7 @@
             overflow-y: auto;
          }
       </style>
+      <style id="dynamic-styles"></style>
    </head>
    <body>
       <div id="header">
@@ -52,12 +53,49 @@
             autoColumns: true, // create columns from data field names
          });
 
+         // Function to apply custom scrollbar styles
+         function applyCustomScrollbarStyles() {
+            const tableHolder = document.querySelector(
+               ".tabulator-tableHolder"
+            );
+            if (tableHolder) {
+               // Apply custom scrollbar styles for Firefox
+               tableHolder.style.scrollbarWidth = "thin";
+               tableHolder.style.scrollbarColor =
+                  "rgba(136, 136, 255, 0.5) rgba(255, 136, 136, 0.5)";
+
+               // Access the pre-existing style element
+               const style = document.getElementById("dynamic-styles");
+               style.textContent = `
+                  .tabulator-tableHolder::-webkit-scrollbar {
+                        width: 4px !important;
+                        height: 4px !important;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-track {
+                        background: transparent !important;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-thumb {
+                        background: rgba(136, 136, 136, 0.5) !important;
+                        border-radius: 2px !important;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-thumb:hover {
+                        background: rgba(85, 85, 85, 0.5) !important;
+                  }
+                  .tabulator-tableHolder::-webkit-scrollbar-button {
+                        display: none !important; /* Hide buttons if not needed */
+                  }
+               `;
+            }
+         }
+
          // Handle messages from extension script
          window.addEventListener("message", (event) => {
             const message = event.data;
             switch (message.command) {
                case "updateData":
                   table.setData(message.data);
+                  // Apply custom scrollbar styles dynamically after setting data
+                  applyCustomScrollbarStyles();
                   break;
             }
          });
@@ -68,6 +106,9 @@
             .addEventListener("click", () => {
                vscode.postMessage({ command: "requestData" });
             });
+
+         // Apply custom scrollbar styles after table initialization
+         applyCustomScrollbarStyles();
       </script>
    </body>
 </html>
