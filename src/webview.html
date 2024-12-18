@@ -2,56 +2,29 @@
 <html lang="en">
    <head>
       <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Tabulator Table</title>
+      <script src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
       <link
          href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/tabulator.min.css"
          rel="stylesheet"
       />
    </head>
    <body>
-      <div id="table"></div>
-      <script src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+      <button id="requestDataButton">Request Data</button>
+      <div id="tabulator-table"></div>
       <script>
          const vscode = acquireVsCodeApi();
 
-         // Sample data
-         const tableData = [
-            { id: 1, name: "Oli Bob", age: "12", col: "red", dob: "" },
-            {
-               id: 2,
-               name: "Mary May",
-               age: "1",
-               col: "blue",
-               dob: "14/05/1982",
-            },
-            // Add more rows as needed
-         ];
-
-         // Create Tabulator table
-         const table = new Tabulator("#table", {
-            data: tableData,
-            layout: "fitColumns",
+         const table = new Tabulator("#tabulator-table", {
             columns: [
-               { title: "Name", field: "name", editor: "input" },
-               {
-                  title: "Age",
-                  field: "age",
-                  hozAlign: "left",
-                  sorter: "number",
-                  editor: true,
-               },
-               {
-                  title: "Favourite Color",
-                  field: "col",
-                  sorter: "string",
-                  editor: "input",
-               },
-               {
-                  title: "Date Of Birth",
-                  field: "dob",
-                  sorter: "date",
-                  hozAlign: "center",
-               },
+               { title: "Name", field: "name" },
+               { title: "Progress", field: "progress" },
+               { title: "Gender", field: "gender" },
+               { title: "Rating", field: "rating" },
+               { title: "Color", field: "col" },
+               { title: "Date of Birth", field: "dob" },
+               { title: "Car", field: "car" },
             ],
             height: "100%", // set height of table
             movableColumns: true, // allow column order to be changed
@@ -68,6 +41,13 @@
                   break;
             }
          });
+
+         // Send requestData message to extension when button is clicked
+         document
+            .getElementById("requestDataButton")
+            .addEventListener("click", () => {
+               vscode.postMessage({ command: "requestData" });
+            });
       </script>
    </body>
 </html>
