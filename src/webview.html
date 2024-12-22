@@ -357,6 +357,8 @@
                   tableElement.classList.add("nowrap-text");
                   tableElement.classList.remove("wrap-text");
                }
+               const fullReRender = true;
+               table.redraw(fullReRender);
                updateVerticalOverflowIndicators();
             });
 
