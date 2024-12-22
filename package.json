@@ -3,6 +3,12 @@
   "displayName": "vsce-tabulator",
   "description": "",
   "version": "0.0.1",
+  "repository": "https://github.com/jbodart-argenx/vsce-tabulator",
+  "license": "MIT",
+  "author": {
+    "name": "Jean-Michel Bodart",
+    "email": "jbodart@argenx.com"
+  },
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -20,6 +26,10 @@
     ]
   },
   "scripts": {
+    "build": "webpack",
+    "package": "npm run set-main-dist && npm run build && npx vsce package",
+    "set-main-src": "node setMain.js src",
+    "set-main-dist": "node setMain.js dist",
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test"
@@ -30,7 +40,12 @@
     "@types/vscode": "^1.96.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
-    "eslint": "^9.16.0"
+    "eslint": "^9.16.0",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "babel-loader": "^8.2.3",
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.6"
   },
   "dependencies": {
     "tabulator-tables": "^6.3.0"
