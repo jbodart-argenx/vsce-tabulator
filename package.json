@@ -27,7 +27,8 @@
   },
   "scripts": {
     "build": "webpack",
-    "package": "npm run set-main-dist && npm run build && npx vsce package",
+    "package": "npm run set-main-dist && npm run build && npx vsce package && npm run set-main-src",
+    "package-ls": "npm run set-main-dist && npm run build && npx vsce ls && npm run set-main-src",
     "set-main-src": "node setMain.js src",
     "set-main-dist": "node setMain.js dist",
     "lint": "eslint .",
