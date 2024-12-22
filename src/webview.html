@@ -182,20 +182,20 @@
 
          if (true) {
             table.on("columnResized", function (column) {
-               console.log("columnResized", column.getField());
+               // console.log("columnResized", column.getField());
                updateVerticalOverflowIndicatorsForColumn(column.getField());
             });
             table.on("rowResized", function (row) {
-               console.log("rowResized", row.getElement());
+               // console.log("rowResized", row.getElement());
                updateVerticalOverflowIndicatorsForRow(row.getElement());
             });
             table.on("columnWidth", function (column) {
-               console.log("columnWidth", column.getField());
+               // console.log("columnWidth", column.getField());
                updateVerticalOverflowIndicatorsForColumn(column.getField());
             });
 
             table.on("rowHeight", function (row) {
-               console.log("rowHeight", row.getIndex());
+               // console.log("rowHeight", row.getIndex());
                updateVerticalOverflowIndicatorsForRow(row.getElement());
             });
          }
