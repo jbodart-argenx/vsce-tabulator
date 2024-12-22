@@ -111,6 +111,17 @@
             },
             placeholder: "No Data Available",
             rowHeader:{formatter:"rownum", headerSort:true, hozAlign:"right", resizable:true, frozen:true},
+            columns: [
+               {
+                  title: "#",
+                  formatter: "rownum",
+                  hozAlign: "right",
+                  headerSort: true,
+                  sorter: "number",
+                  frozen: true,
+                  resizable: true,
+               },
+            ],
             // columnResized: function () {
             //    updateVerticalOverflowIndicators();
             // },
