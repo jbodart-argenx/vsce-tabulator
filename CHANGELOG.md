@@ -4,6 +4,7 @@ All notable changes to the "vsce-tabulator" extension will be documented in this
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## Version 0.0.1 - 2024-12-24
 
-- Initial release
+- Initial testable and debuggable version
+
