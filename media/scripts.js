@@ -6,6 +6,7 @@ const vscode = acquireVsCodeApi();
 
 let headerFilter = false;
 let classes = {};
+let data;
 
 const metadataDiv = document.getElementById('metadata');
 const rotateButton = metadataDiv.querySelector('#rotateButton');
@@ -24,19 +25,16 @@ const havingField = metadataDiv.querySelector('#having');
 const orderByField = metadataDiv.querySelector('#orderBy');
 const sourceField = metadataDiv.querySelector('#source');
 
-/*
 const hiddenColumnsField = metadataDiv.querySelector('#hiddenColumns');
 const totalField = metatoprow.querySelector('#total');
 const limitField = metatoprow.querySelector('#limit');
 const displayedRowsField = metatoprow.querySelector('#displayedRows');
 const filePropertiesField = metadataDiv.querySelector('#fileProperties');
-*/
 
 const fontSelector = metatoprow.querySelector('#font-selector');
 // const whiteSpaceSelector = metatoprow.querySelector('#white-space-selector');
 const dynamicStyles = document.getElementById('dynamic-styles');
 
-let data = generateTestData();
 
 const table = new Tabulator("#tabulator-table", {
    data: data, // set initial data
@@ -116,7 +114,36 @@ table.on("columnWidth", function (column) {
 table.on("rowHeight", function (row) {
    updateVerticalOverflowIndicatorsForRow(row.getElement());
 });
+
+// Wait for the table to be built
 table.on("tableBuilt", function () {
+   if (!data) {
+      data = generateTestData();
+   }
+   
+   if (Array.isArray(data)) {
+      table.setData(data);
+      updateMetadata({ 
+         total: data.length,
+         maxRows: Math.max(5000, data.length),
+         rows: data.length > 0 ? `1:${data.length}` : '',
+         start: data.length > 0 ? 1 : NaN,
+         end: data.length,
+      });
+   } else if (data instanceof Object && data != null) {
+      const fields = Object.keys(data).filer(field => Array.isArray(data[field]));
+      table.setData(data);
+      updateMetadata({ 
+         total: data[fields[0]].length, 
+         maxRows: Math.max(5000, data[fields[0]].length),
+         rows: data[fields[0]].length > 0 ? `1:${data[fields[0]].length}` : '',
+         allColnames: fields,
+         start: data[fields[0]].length > 0 ? 1 : NaN,
+         end: data.length,
+      });
+   } else {
+      alert(`Unexpected data type: ${typeof data}`);
+   }
    updateVerticalOverflowIndicators();
 });
 
@@ -320,10 +347,209 @@ function decorateHeader(header, classes) {
    return header;
 }
 
+// Hanlde Enter key press in editable fields
+function handleEnter(element) {
+   // Your custom function logic here
+   console.log('Enter pressed in:', element.id, ' text content:', element.textContent, ' inner html:', element.innerHTML);
+   let metadata = window.metadata;
+   // const nonBreakingSpace = '\u00A0';
+   // const zeroWidthSpace = '\u200B';
+   // const specialSpaces = new RegExp(`[\t${zeroWidthSpace}${nonBreakingSpace}]`, 'g');  // equivalent to: /[\t\u200B\u00A0]/g
+   metadata.maxRows = +(`${limitField.textContent.replaceSpecialSpaces()}`.trim() || metadata.maxRows || 5000);
+   metadata.rows = rowsField.textContent.replaceSpecialSpaces() || '';
+   metadata.groupBy = groupByField.textContent.replaceSpecialSpaces() || '';
+   metadata.retrieve = toggleDiv.querySelector('input[name="retrieve"]:checked').value || '';
+   metadata.orderBy = orderByField.textContent.replaceSpecialSpaces() || '';
+   metadata.having = havingField.textContent.replaceSpecialSpaces() || '';
+   const val = displayedRowsField.textContent.replaceSpecialSpaces();
+   if (/^\s*\d+:\d+\s*$/.test(val)) {
+      metadata.offset = +val.split(':')[0] - 1;
+      displayedRowsField.textContent = `${+metadata.offset + 1}:${Math.min(+metadata.offset + metadata.maxRows, +metadata.total)}`
+   }
+   if (element.id === 'columns') {
+      // re-derive hiddenColumns based on selected columns
+      metadata.columns = columnsField.textContent.replaceSpecialSpaces(); // .split(',');
+      metadata.columns = `${metadata.columns}`
+         .replaceAll(/(^(\s*,\s*)+|(\s*,\s*)+$)/g, '')
+         .replaceAll(/(^,*|,*$)/g, '')
+         .replaceAll(/,(\s*,)+/g, ',')
+         .replaceAll(/,(?!\s)/g, ', ');
+      columnsField.textContent = metadata.columns;
+      // metadata.hiddenColumns = metadata.colnames.filter((item) => !metadata.columns.includes(item));
+      metadata.hiddenColumns = metadata.colnames.filter((item) => !`${metadata.columns}`.split(/[^\w.]/).includes(item));
+      hiddenColumnsField.textContent = `${metadata.hiddenColumns}`.replaceAll(/,(?!\s)/g, ', ');
+   }
+   if (element.id === 'hiddenColumns') {
+      if ((/^\s*\[.*\]\s*$/).test(`${metadata.columns}`)) {
+         // re-derive hiddenColumns based on selected columns
+         metadata.columns = columnsField.textContent.replaceSpecialSpaces(); // .split(',');
+         // metadata.hiddenColumns = metadata.colnames.filter((item) => !metadata.columns.includes(item));
+         metadata.hiddenColumns = metadata.colnames.filter((item) => !`${metadata.columns}`.split(/[^\w.]/).includes(item));
+         hiddenColumnsField.textContent = `${metadata.hiddenColumns}`.replaceAll(/,(?!\s)/g, ', ');
+      } else {
+         // remove new hiddenColumns from columns, add removed hiddenColumns to columns
+         metadata.hiddenColumns = hiddenColumnsField.textContent
+            .replaceSpecialSpaces()
+            .split(',')
+            .map(item => `${item}`.trim());
+         const addColumns = metadata.colnames
+            .filter((item) => !metadata.hiddenColumns.includes(item))
+            .filter((item) => !`${metadata.columns}`.split(/[^\w.]/).includes(item));
+         const removeColumns = metadata.colnames
+            .filter((item) => metadata.hiddenColumns.includes(item))
+            .filter((item) => `${metadata.columns}`.split(/[^\w.]/).includes(item));
+         columnsField.textContent = (`${metadata.columns}`
+            .replaceAll(new RegExp(`(^|,)\\s*(${removeColumns.join('|')})\\s*(,|$)`, 'g'), ',')
+            + `,${addColumns}`)
+            .replaceAll(/(^,*|,*$)/g, '')
+            .replaceAll(/,(\s*,)+/g, ',')
+            .replaceAll(/,(?!\s)/g, ', ');
+      }
+   }
+   let newSource = sourceField.textContent.replaceSpecialSpaces() || '';
+   if (newSource && newSource !== metadata.source) {
+      metadata = { source: newSource };
+      if (/^[\w.-]+:[\\/]{2}[\w.-]+[\\/][\w.-]+/.test(newSource)) {
+         // for a URI allpath separators should be '/'
+         metadata.source = metadata.source.replaceAll('\\', '/');
+         sourceField.textContent = metadata.source;
+         console.log(`Detected URL source: ${metadata.source}`);
+      } else {
+         // For local files replace '/' and '\' by the OS path separator
+         metadata.source = metadata.source.replaceAll(/[/\\]/g, window.pathSeparator || '\\');
+         sourceField.textContent = metadata.source;
+         console.log(`Detected non-URL source: ${metadata.source}`);
+      }
+      columnsField.textContent = '';
+      rowsField.textContent = '';
+      groupByField.textContent = '';
+      havingField.textContent = '';
+      orderByField.textContent = '';
+      hiddenColumnsField.textContent = '';
+      displayedRowsField.textContent = '';
+   }
+   metadata.requestType = 'updateData'; 
+   window.metadata = metadata;
+   window.requestData(metadata);
+}
+
+function checkEnter(event) {
+   // debugger ;
+   if (event.key === 'Enter') {
+      if (!event.shiftKey && !event.ctrlKey) {
+         event.preventDefault(); // Prevents the default action of adding a newline
+         handleEnter(event.target);
+      }
+   }
+}
+
+function handleBlur(element) {
+   // debugger ;
+   let metadata = window.metadata;
+   if (element.target.id === 'columns') {
+      // re-derive hiddenColumns based on selected columns
+      metadata.columns = columnsField.textContent.replaceSpecialSpaces(); // .split(',');
+      metadata.columns = `${metadata.columns}`
+         .replaceAll(/(^(\s*,\s*)+|(\s*,\s*)+$)/g, '')
+         .replaceAll(/(^,*|,*$)/g, '')
+         .replaceAll(/,(\s*,)+/g, ',')
+         .replaceAll(/,(?!\s)/g, ', ');
+      columnsField.textContent = metadata.columns;
+      // metadata.hiddenColumns = metadata.colnames.filter((item) => !metadata.columns.includes(item));
+      metadata.hiddenColumns = metadata.colnames.filter((item) => !`${metadata.columns}`.split(/[^\w.]/).includes(item));
+      hiddenColumnsField.textContent = `${metadata.hiddenColumns}`
+         .replaceAll(/(^,*|,*$)/g, '')
+         .replaceAll(/,(\s*,)+/g, ',')
+         .replaceAll(/,(?!\s)/g, ', ');
+   }
+   if (element.target.id === 'hiddenColumns') {
+      if ((/^\s*\[.*\]\s*$/).test(`${metadata.columns}`)) {
+         // re-derive hiddenColumns based on selected columns
+         metadata.columns = columnsField.textContent.replaceSpecialSpaces(); // .split(',');
+         // metadata.hiddenColumns = metadata.colnames.filter((item) => !metadata.columns.includes(item));
+         metadata.hiddenColumns = metadata.colnames.filter((item) => !`${metadata.columns}`.split(/[^\w.]/).includes(item));
+         hiddenColumnsField.textContent = `${metadata.hiddenColumns}`.replaceAll(/,(?!\s)/g, ', ');
+      } else {
+         // remove new hiddenColumns from columns, add removed hiddenColumns to columns
+         metadata.hiddenColumns = hiddenColumnsField.textContent
+            .replaceSpecialSpaces()
+            .split(',')
+            .map(item => `${item}`.trim());
+         hiddenColumnsField.textContent = `${metadata.hiddenColumns}`
+            .replaceAll(/,(?!\s)/g, ', ');
+         const addColumns = metadata.colnames
+            .filter((item) => !metadata.hiddenColumns.includes(item))
+            .filter((item) => !`${metadata.columns}`.split(/[^\w.]/).includes(item));
+         const removeColumns = metadata.colnames
+            .filter((item) => metadata.hiddenColumns.includes(item))
+            .filter((item) => `${metadata.columns}`.split(/[^\w.]/).includes(item));
+         metadata.columns = (`${metadata.columns}`
+            .replaceAll(new RegExp(`(^|,)\\s*(${removeColumns.join('|')})\\s*(,|$)`, 'g'), ',')
+            + `,${addColumns}`)
+            .replaceAll(/(^,*|,*$)/g, '')
+            .replaceAll(/,(\s*,)+/g, ',')
+            .replaceAll(/,(?!\s)/g, ', ');
+         columnsField.textContent = metadata.columns;
+      }
+   }
+   window.metadata = metadata;
+}
+
+function updateMetadata(metadata) {
+   metadata.colnames = metadata.allColnames || metadata.colnames || metadata.headers || [];
+   metadata.columns = metadata.columns || metadata.colnames || [];
+   metadata.hiddenColumns = metadata.colnames.filter((item) => !`${metadata.columns}`.split(/[^\w.]/).includes(item));
+   metadata.rows = metadata.rows || '';
+   metadata.orderBy = metadata.orderBy || '';
+   metadata.colClasses = metadata.colClasses || { } ;
+   window.metadata = metadata;
+
+   sourceField.textContent = metadata.source;
+   columnsField.textContent = `${metadata.columns}`.replaceAll(/,(?!\s)/g, ', ');
+   hiddenColumnsField.textContent = `${metadata.hiddenColumns}`.replaceAll(/,(?!\s)/g, ', ');
+   rowsField.textContent = metadata.rows;
+   displayedRowsField.textContent = `${metadata.start}:${metadata.end}`;
+   orderByField.textContent = `${metadata.orderBy || ''}`;
+   groupByField.textContent = `${metadata.groupBy || ''}`;
+   havingField.textContent = `${metadata.having || ''}`;
+   if (metadata.retrieve) {
+      const radio = toggleDiv.querySelector('input[name="retrieve"][value="${metadata.retrieve}"]');
+      if (radio) radio.checked = true;
+   }
+   totalField.textContent = `${metadata.total}`;
+   limitField.textContent = `${metadata.maxRows}`;
+
+   let { size, mtime, ctime, created, lastModified, createdBy, lastModifiedBy, versioned, checkedOut, locked, digest } = 
+      {...metadata.fileStat, ...metadata.fileProperties};
+   let fileProperties = { 
+      size, 
+      created: created || ctime != null ? new Date(ctime).toISOString() : null,
+      lastModified: lastModified || mtime != null ? new Date(mtime).toISOString() : null,
+      createdBy,
+      lastModifiedBy,
+      versioned,
+      checkedOut,
+      locked,
+      digest
+   }
+
+   filePropertiesField.textContent = Object.entries(fileProperties)
+      .map(([k, v]) => v != null ? `${k}: ${v}` : '')
+      .filter(v => v)
+      .join(', ');
+
+   // Adding Event Listeners to .editable objects
+   metadataDiv.querySelectorAll('.editable').forEach(element => {
+      element.addEventListener('keydown', checkEnter);
+      element.addEventListener('blur', handleBlur);
+   });
+}
+
+
 
 // Request data from the extension
 function requestData(metadata) {
-   if (metadata) {
+   if (typeof metadata === 'object' && metadata != null && ! (metadata instanceof Event)) {
       metadata.source = sourceField.textContent.replaceSpecialSpaces() || '';
       metadata.columns = (columnsField.textContent.replaceSpecialSpaces() || '') // .split(','); // .split() needed ?
       metadata.rows = rowsField.textContent.replaceSpecialSpaces() || '';
@@ -333,7 +559,12 @@ function requestData(metadata) {
       metadata.orderBy = orderByField.textContent.replaceSpecialSpaces() || '';
 
       console.log('Webview requesting data...', { metadata });
-      vscode.postMessage({ command: 'requestData', metadata });
+      try {
+         vscode.postMessage({ command: 'requestData', metadata });
+      } catch (error) {
+         debugger;
+         console.error('(requestData) error:', error);
+      }
    } else {
       vscode.postMessage({ command: 'requestData' });
    }
@@ -348,7 +579,12 @@ window.addEventListener("message", (event) => {
    const message = event.data;
    switch (message.command) {
       case "updateData":
-         table.setData(message.data);
+         if (message.data) {
+            table.setData(message.data);
+         }
+         if (message.metadata) {
+            updateMetadata(message.metadata);
+         }
          updateVerticalOverflowIndicators();
          break;
    }
