@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 const assert = require('assert');
 const vscode = require('vscode');
 
