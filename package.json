@@ -34,8 +34,9 @@
     "set-main-src": "node setMain.js src",
     "set-main-dist": "node setMain.js dist",
     "lint": "eslint --config eslint.config.mjs .",
-    "pretest": "npm run lint",
-    "test": "npm run build && node --force-node-api-uncaught-exceptions-policy=true ./test/runTest.js",
+    "pretest-dist": "npm run lint",
+    "test": "npm run set-main-src && node --force-node-api-uncaught-exceptions-policy=true .\\test\\runTest.js",
+    "test-dist": "npm run set-main-dist && npm run build && node --force-node-api-uncaught-exceptions-policy=true ./test/runTest.js",
     "vscode-cli-test": "vscode-test --config ./.vscode-test.mjs",
     "cleanup": "node test/cleanup.js",
     "update": "npx npm-check-updates -u"
