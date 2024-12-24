@@ -5,6 +5,7 @@
 const vscode = acquireVsCodeApi();
 
 let headerFilter = false;
+let classes = {};
 
 const metadataDiv = document.getElementById('metadata');
 const rotateButton = metadataDiv.querySelector('#rotateButton');
@@ -13,15 +14,18 @@ const toggleDiv = metadataDiv.querySelector('#toggleDiv');
 const resizableDiv = metadataDiv.querySelector('#resizable');
 const handle = metadataDiv.querySelector('#handle');
 const metatoprow = metadataDiv.querySelector('#metaTopRow');
+// const requestDataButton = document.getElementById("requestDataButton");
+const requestDataButton = metadataDiv.querySelector('#requestDataButton');
 
-/*
 const columnsField = metadataDiv.querySelector('#columns');
-const hiddenColumnsField = metadataDiv.querySelector('#hiddenColumns');
 const rowsField = metadataDiv.querySelector('#rows');
 const groupByField = metadataDiv.querySelector('#groupBy');
 const havingField = metadataDiv.querySelector('#having');
 const orderByField = metadataDiv.querySelector('#orderBy');
 const sourceField = metadataDiv.querySelector('#source');
+
+/*
+const hiddenColumnsField = metadataDiv.querySelector('#hiddenColumns');
 const totalField = metatoprow.querySelector('#total');
 const limitField = metatoprow.querySelector('#limit');
 const displayedRowsField = metatoprow.querySelector('#displayedRows');
@@ -40,7 +44,7 @@ const table = new Tabulator("#tabulator-table", {
    resizableColumns: true, // allow columns width to be changed
    movableColumns: true, // allow column order to be changed
    resizableRows: true, // allow row height to be changed
-   autoColumns: true, // create columns from data field names
+   autoColumns: "full", // true, // create columns from data field names
    //layout: "fitDataTable", // fit table width and columns width to the data
    layout: "fitData", // fit columns width to the data
    layoutColumnsOnNewData:true,
@@ -76,15 +80,20 @@ const table = new Tabulator("#tabulator-table", {
       },
       headerTooltip: true,
    },
-   // autoColumnsDefinitions:function(definitions){
-   //    //definitions - array of column definition objects
-   //    definitions.forEach((column) => {
-   //       column.headerFilter = true; // add header filter to every column
-   //       // set column initial maxwidth to viewport width - 50px
-   //       column.maxInitialWidth = `${window.innerWidth - 50}px`;
-   //    });
-   //    return definitions;
-   // },
+   autoColumnsDefinitions:function(definitions){
+      //definitions - array of column definition objects
+      definitions.forEach((column) => {
+         // column.headerFilter = true; // add header filter to every column
+         // set column initial maxwidth to viewport width - 50px
+         // column.maxInitialWidth = `${window.innerWidth - 50}px`;
+         if (!classes[column.field]) {
+            // Add a default class for the column based on the auto-assigned column sorter
+            classes[column.field] = column.sorter;
+         }
+         column.title = decorateHeader(column.field, classes);
+      });
+      return definitions;
+   },
    placeholder: "No Data Available",
    rowHeader:{formatter:"rownum", headerSort:true, hozAlign:"right", resizable:true, frozen:true},
    columns: [
@@ -255,7 +264,7 @@ function generateTestData() {
          gender: i % 2 === 0 ? "Male" : "Female",
          rating: Math.floor(Math.random() * 5) + 1,
          col: `Color ${i}`,
-         dob: `1990-01-${(i % 30) + 1}`,
+         dob: new Date(`1990-01-${(i % 30) + 1}`).toISOString().split("T")[0],
          car: `Car ${i}`,
          description: generateRandomText(
             Math.floor(Math.random() * 201)
@@ -265,12 +274,74 @@ function generateTestData() {
    return data;
 }
 
+
+// Add method to replace special spaces to the String prototype
+// (as non-breaking spaces can easily get inserted when copying & pasting between fields)
+String.prototype.replaceSpecialSpaces = function() {
+   const tab = '\t';
+   const nonBreakingSpace = '\u00A0';
+   const zeroWidthSpace = '\u200B';
+   
+   return this
+      .replaceAll(tab, '    ')
+      .replaceAll(nonBreakingSpace, ' ')
+      .replaceAll(zeroWidthSpace, '');
+};
+
+function decorateHeader(header, classes) {
+   const classname = classes[header];
+   if(!header || ! classes) return header;
+   switch (classname) {
+      case 'number':
+      case 'numeric':
+         header += ' 🔟';
+         break;
+      case 'string':
+      case 'character':
+         header += ' 🅰️';
+         break;
+      case 'Date':
+      case 'date':
+         header += ' 📆';
+         break;
+      case 'time':
+      case 'hms':
+      case 'ITime':
+         header += ' 🕒';
+         break;
+      case 'datetime':
+      case 'POSIXct':
+      case 'POSIXlt':
+         header += ' 📅🕒';
+         break;
+      default:
+         break;
+   }
+   return header;
+}
+
+
+// Request data from the extension
+function requestData(metadata) {
+   if (metadata) {
+      metadata.source = sourceField.textContent.replaceSpecialSpaces() || '';
+      metadata.columns = (columnsField.textContent.replaceSpecialSpaces() || '') // .split(','); // .split() needed ?
+      metadata.rows = rowsField.textContent.replaceSpecialSpaces() || '';
+      metadata.groupBy = groupByField.textContent.replaceSpecialSpaces() || '';
+      metadata.retrieve = toggleDiv.querySelector('input[name="retrieve"]:checked').value || '';
+      metadata.having = havingField.textContent.replaceSpecialSpaces() || '';
+      metadata.orderBy = orderByField.textContent.replaceSpecialSpaces() || '';
+
+      console.log('Webview requesting data...', { metadata });
+      vscode.postMessage({ command: 'requestData', metadata });
+   } else {
+      vscode.postMessage({ command: 'requestData' });
+   }
+   console.log('requestData message posted!');
+}
+
 // Send requestData message to extension when button is clicked
-document
-   .getElementById("requestDataButton")
-   .addEventListener("click", () => {
-      vscode.postMessage({ command: "requestData" });
-   });
+requestDataButton.addEventListener("click", requestData);
 
 // Handle messages sent from the extension to the webview
 window.addEventListener("message", (event) => {
