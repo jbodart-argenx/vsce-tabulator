@@ -4,7 +4,35 @@
 
 const vscode = acquireVsCodeApi();
 
-const data = generateTestData();
+let headerFilter = false;
+
+const metadataDiv = document.getElementById('metadata');
+const rotateButton = metadataDiv.querySelector('#rotateButton');
+const rotateLabel = metadataDiv.querySelector('#rotateLabel');
+const toggleDiv = metadataDiv.querySelector('#toggleDiv');
+const resizableDiv = metadataDiv.querySelector('#resizable');
+const handle = metadataDiv.querySelector('#handle');
+const metatoprow = metadataDiv.querySelector('#metaTopRow');
+
+/*
+const columnsField = metadataDiv.querySelector('#columns');
+const hiddenColumnsField = metadataDiv.querySelector('#hiddenColumns');
+const rowsField = metadataDiv.querySelector('#rows');
+const groupByField = metadataDiv.querySelector('#groupBy');
+const havingField = metadataDiv.querySelector('#having');
+const orderByField = metadataDiv.querySelector('#orderBy');
+const sourceField = metadataDiv.querySelector('#source');
+const totalField = metatoprow.querySelector('#total');
+const limitField = metatoprow.querySelector('#limit');
+const displayedRowsField = metatoprow.querySelector('#displayedRows');
+const filePropertiesField = metadataDiv.querySelector('#fileProperties');
+*/
+
+const fontSelector = metatoprow.querySelector('#font-selector');
+// const whiteSpaceSelector = metatoprow.querySelector('#white-space-selector');
+const dynamicStyles = document.getElementById('dynamic-styles');
+
+let data = generateTestData();
 
 const table = new Tabulator("#tabulator-table", {
    data: data, // set initial data
@@ -18,7 +46,35 @@ const table = new Tabulator("#tabulator-table", {
    layoutColumnsOnNewData:true,
    columnDefaults: {
       maxInitialWidth: `${window.innerWidth - 50}px`,
-      headerFilter: true,
+      headerFilter: headerFilter,
+      tooltip: function (e, cell, onRendered){
+         // e           -  mouseover event
+         // cell        -  cell component
+         // onRendered  -  onRendered callback registration functionton - allows you to register a callback that will be triggered
+         //                when the popup has been added to the DOM but before its position is confirmed.
+         const tooltipElement = document.createElement("div");
+         tooltipElement.style.backgroundColor = "lightblue";
+         tooltipElement.innerText = cell.getColumn().getField() + " - " + cell.getValue(); //return cells "field - value";
+         tooltipElement.style.backgroundColor = 'var(--vscode-button-background, #fff)';
+         tooltipElement.style.border = '1px solid var(--vscode-button-foreground, #ccc)';
+         tooltipElement.style.padding = '5px';
+         tooltipElement.style.boxShadow = '3px 3px 15px 5px rgba(0, 0, 0, 0.3)';
+         tooltipElement.style.zIndex = '10';
+         tooltipElement.style.maxWidth = '90%'; // '400px';
+         tooltipElement.style.wordWrap = 'break-word';
+      
+         onRendered(function(){ 
+            tooltipElement.style.display = "block";
+            const target = cell.getElement();
+            const rect = target.getBoundingClientRect();
+            tooltipElement.style.left = `${rect.left + window.scrollX + 3}px`;
+            tooltipElement.style.top = `${rect.top + window.scrollY + 3}px`;
+            tooltipElement.style.position = 'absolute';
+         });
+         
+         return tooltipElement; 
+      },
+      headerTooltip: true,
    },
    // autoColumnsDefinitions:function(definitions){
    //    //definitions - array of column definition objects
@@ -92,6 +148,24 @@ function updateVerticalOverflowIndicatorsForRow(rowElement) {
    }
 }
 
+// Add event listener to update global font
+// eslint-disable-next-line no-unused-vars
+function updateGlobalFont() {
+   const selectedValue = fontSelector.value;
+   const styleSheet = dynamicStyles.sheet;
+   const rules = styleSheet.cssRules || styleSheet.rules;
+   
+   for (let i = 0; i < rules.length; i++) {
+      if (rules[i].selectorText === '.tabulator-cell') {
+         if (selectedValue === 'proportional') {
+            rules[i].style.fontFamily = 'var(--vscode-font-family, "Segoe WPC", "Segoe UI", sans-serif)';
+         } else {
+            rules[i].style.fontFamily = 'var(--vscode-editor-font-family, Consolas, "Courier New", Courier, monospace)';
+         }
+      }
+   }
+}
+
 // Add event listener to toggle wrap text in table cells
 document
    .getElementById("toggleWrapCheckbox")
@@ -109,6 +183,56 @@ document
       updateVerticalOverflowIndicators();
    });
 
+// Add event listener to toggle metadata
+rotateButton.addEventListener('click', () => {
+   // Toggle the 'rotated' class on the button label
+   rotateLabel.classList.toggle('rotated');
+
+   // Toggle the visibility of the div
+   if (rotateLabel.classList.contains('rotated')) {
+      toggleDiv.classList.add('visible');
+      handle.classList.add('visible');
+      // const lineHeight = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const handleHeight = handle.offsetHeight;
+      const metatoprowHeight = metatoprow.offsetHeight;
+      resizableDiv.style.height = Math.max(
+         metatoprowHeight,
+         Math.min(metatoprowHeight + toggleDiv.scrollHeight + handleHeight, 0.5 * window.innerHeight)
+      ) + 'px';
+      // toggleDiv.style.maxHeight = 4.5 * lineHeight + 'px';
+      toggleDiv.style.maxHeight = (resizableDiv.offsetHeight - (metatoprow.offsetHeight + handle.offsetHeight)) + 'px';
+   } else {
+      toggleDiv.classList.remove('visible');
+      handle.classList.remove('visible');
+      resizableDiv.style.height = metatoprow.offsetHeight + 'px';
+   }
+
+   // Adjust Table Height
+   // setTimeout(adjustTableHeight, 20);
+});
+
+// Add event listener to resize metadata div
+handle.addEventListener('mousedown', function(e) {
+   e.preventDefault();
+   if (toggleDiv.classList.contains('visible')) {
+      document.addEventListener('mousemove', resizeDiv);
+      document.addEventListener('mouseup', stopResizeDiv);
+   }
+});
+function resizeDiv(e) {
+   const newHeight = e.clientY - resizableDiv.getBoundingClientRect().top;
+   const metatoprowHeight = metatoprow.offsetHeight;
+   const handleHeight = handle.offsetHeight;
+   resizableDiv.style.height = Math.max(
+      metatoprowHeight,
+      Math.min(newHeight, metatoprowHeight + toggleDiv.scrollHeight + handleHeight, 1.0 * window.innerHeight)) + 'px';
+   toggleDiv.style.maxHeight = (resizableDiv.offsetHeight - handleHeight - metatoprowHeight) + 'px';
+   // adjustTableHeight()
+}
+function stopResizeDiv() {
+   document.removeEventListener('mousemove', resizeDiv);
+   document.removeEventListener('mouseup', stopResizeDiv);
+}
 
 // Generate test data
 function generateTestData() {
