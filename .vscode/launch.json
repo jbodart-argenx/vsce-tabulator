@@ -4,10 +4,6 @@
 // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 {
    "version": "0.2.0",
-   "runtimeArgs": [
-            "--force-node-api-uncaught-exceptions-policy=true",
-				"--trace-deprecation",   
-         ],
    "configurations": [
       {
          "name": "Run Extension",
@@ -22,34 +18,17 @@
          "preLaunchTask": "set-main-src"
       },
       {
-         "name": "Run Extension Tests",
+         "name": "Run Tests",
          "type": "extensionHost",
          "request": "launch",
-         "runtimeExecutable": "${execPath}",
+         // "runtimeExecutable": "${execPath}",
          "args": [
 				"--disable-extensions", 	// optional
             "--extensionDevelopmentPath=${workspaceFolder}",
-            "--extensionTestsPath=${workspaceFolder}/test/runTest.js"
+            "--extensionTestsPath=${workspaceFolder}/test/suite"
          ],
-         
-         "outFiles": ["${workspaceFolder}/test/**/*.js"]
-      },
-		{
-			"name": "Debug Extension Tests",
-			"type": "node",
-			"request": "launch",
-			"program": "${workspaceFolder}/node_modules/@vscode/test-electron/out/runTest.js",
-			"args": [
-				"--disable-extensions", 	// optional
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/test/runTest.js"
-			],
-			"outFiles": ["${workspaceFolder}/out/test/**/*.js"],
-			"preLaunchTask": "npm: build",
-			"stopOnEntry": false,
-			"sourceMaps": true,
-			"smartStep": true,
-			"internalConsoleOptions": "openOnSessionStart"
-		}
+         "outFiles": ["${workspaceFolder}/test/**/*.js"],
+         "preLaunchTask": "set-main-src"
+      }
    ]
 }
