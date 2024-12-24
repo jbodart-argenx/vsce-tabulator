@@ -3,8 +3,9 @@ const path = require('path');
 const fs = require('fs');
 
 function activate(context) {
-	context.subscriptions.push(vscode.commands.registerCommand('vsce-tabulator.showTabulator', () => {
-		const panel = vscode.window.createWebviewPanel(
+	let panel;
+	const showTabulator = () => {
+		panel = vscode.window.createWebviewPanel(
 			'tabulatorWebview',
 			'Tabulator Table',
 			vscode.ViewColumn.One,
@@ -13,6 +14,9 @@ function activate(context) {
 				localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
 			}
 		);
+		
+		// Set the panel as the active webview panel
+		vscode.window.activeWebviewPanel = panel;
 
 		const htmlPath = path.join(context.extensionPath, 'src', 'webview.html');
 		let htmlContent = fs.readFileSync(htmlPath, 'utf8');
@@ -38,7 +42,12 @@ function activate(context) {
 			undefined,
 			context.subscriptions
 		);
-	}));
+	};
+
+	const commandDisposable = vscode.commands.registerCommand('vsce-tabulator.showTabulator', showTabulator);
+	commandDisposable._callback = showTabulator; // Store the callback function to be used in tests
+	commandDisposable._command = 'vsce-tabulator.showTabulator';  // Store the command name to be used in tests
+	context.subscriptions.push(commandDisposable);
 }
 
 function deactivate() { }
@@ -58,5 +67,6 @@ function getData() {
 
 module.exports = {
 	activate,
-	deactivate
+	deactivate,
+	getData
 };
