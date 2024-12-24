@@ -5,12 +5,21 @@ body {
    margin: 0;
    padding: 0;
 }
-#header {
+
+#metadata {
+   width: 100%;
+   display: flex;
+   flex-direction: row;
+   box-sizing: border-box;
+   margin: 0px;
+   padding: 0px;
+   padding-right: 2px;
+}
+
+/* #header {
    flex: 0 0 auto;
    padding: 10px;
-   /* background-color: #f0f0f0;
-   border-bottom: 1px solid #ccc; */
-}
+} */
 #tabulator-table {
    flex: 1 1 auto;
    overflow: hidden; /* Hide default scrollbars */
@@ -26,16 +35,6 @@ body {
    width: 4px;
    height: 4px;
 }
-/* .tabulator-tableHolder::-webkit-scrollbar-track {
-   background: #f0f0f0;
-}
-.tabulator-tableHolder::-webkit-scrollbar-thumb {
-   background: #888;
-   border-radius: 4px;
-}
-.tabulator-tableHolder::-webkit-scrollbar-thumb:hover {
-   background: #555;
-} */
 .tabulator-tableHolder::-webkit-scrollbar-button,
 .tabulator-tableholder::-webkit-scrollbar-button {
    display: none; /* Hide buttons if not needed */
@@ -66,4 +65,112 @@ body {
 }
 .nowrap-text .tabulator-cell.overflow::after {
    visibility: visible;
+}
+.tooltip,
+.tabulator-tooltip {
+   position: absolute;
+   background-color: var(--vscode-button-background, #fff);
+   border: 1px solid var(--vscode-button-foreground, #ccc);
+   padding: 5px;
+   box-shadow: 3px 3px 15px 5px rgba(0, 0, 0, 0.3);
+   z-index: 10;
+   max-width: 200px;
+   word-wrap: break-word;
+}
+
+.tabulator-row-odd {
+   background-color: #ffffff;
+}
+.tabulator-row-even {
+   background-color: #efefef;
+}
+.tabulator-row-selected {
+   background-color: #e0e0e0;
+} 
+
+#handle {
+   display: none;
+}
+#handle.visible {
+   display: block;
+   width: 100%;
+   height: 1px;
+   background: var(--vscode-button-background);
+   border: 1px solid transparent;
+   cursor: ns-resize;
+   position: absolute;
+   bottom: 0;
+   left: 0;
+}
+#handle:hover {
+   background: var(--vscode-button-hoverBackground);
+   border: 1px solid var(--vscode-button-hoverBackground);
+}
+
+#rotateLabel {
+   display: inline-block; /* Required for rotation to work */
+   transition: transform 0.3s ease; /* Smooth rotation */
+}
+
+#rotateButton {
+   flex: 0 0 auto; /* Prevent the button from growing or shrinking */
+   width: auto; /* Minimal width based on content */
+   height: 100%; /* Fill the height of the parent */
+   display: flex; /* Align content inside the button */
+   align-self: flex-start;
+   align-items: center; /* Center content vertically inside button */
+   border: none;
+   cursor: pointer;
+   background-color: var(--vscode-editor-selectionHighlightBackground);
+   color: var(--vscode-editor-selectionForeground);
+}
+
+label {
+   padding: 2px;
+   margin-bottom: 2px;
+}
+
+.editable-container {
+   width: 100%;
+   display: flex;
+   align-items: flex-start;
+   margin-bottom: 2px;
+   margin-right: 2px;
+   word-wrap: break-word; /* Ensures long words break and wrap */
+   overflow-wrap: break-word; /* Ensures long words break and wrap */
+   white-space: normal; /* Allows text to wrap normally */
+}
+
+.editable {
+   flex-grow: 1;
+   border: 1px dashed #ccc;
+   padding: 2px;
+   cursor: text;
+}
+
+.editable:hover {
+   background-color: var(--vscode-editor-selectionHighlightBackground);
+   color: var(--vscode-editor-selectionForeground);
+}
+
+.rotated {
+   transform: rotate(90deg);
+}
+
+#toggleDiv {
+   display: none; /* Initially hidden */
+}
+
+#toggleDiv.visible {
+   display: block; /* Visible when class is added */
+   flex: 1; /* Take up the remaining space */
+   overflow-x: hidden;
+   overflow-y: auto;
+}
+
+#resizable {
+   width: 100%;
+   border: 1px solid #000;
+   position: relative;
+   overflow: hidden;
 }
