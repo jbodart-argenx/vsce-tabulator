@@ -12,7 +12,8 @@ const table = new Tabulator("#tabulator-table", {
    movableColumns: true, // allow column order to be changed
    resizableRows: true, // allow row height to be changed
    autoColumns: true, // create columns from data field names
-   layout: "fitDataTable", // fit columns to width of table
+   //layout: "fitDataTable", // fit table width and columns width to the data
+   layout: "fitData", // fit columns width to the data
    layoutColumnsOnNewData:true,
    autoColumnsDefinitions:function(definitions){
       //definitions - array of column definition objects
