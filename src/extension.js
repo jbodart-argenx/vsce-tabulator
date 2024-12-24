@@ -23,9 +23,14 @@ function activate(context) {
 
 		const tabulatorJsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'tabulator.min.js')));
 		const tabulatorCssUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'tabulator.min.css')));
-
+		const scriptsUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'scripts.js')));
+		const stylesUri = panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'media', 'styles.css')));
+		
+		
 		htmlContent = htmlContent.replace('src="../media/tabulator.min.js"', `src="${tabulatorJsUri}"`);
 		htmlContent = htmlContent.replace('href="../media/tabulator.min.css"', `href="${tabulatorCssUri}"`);
+		htmlContent = htmlContent.replace('src="../media/scripts.js"', `src="${scriptsUri}"`);
+		htmlContent = htmlContent.replace('href="../media/styles.css"', `href="${stylesUri}"`);
 
 		panel.webview.html = htmlContent;
 
