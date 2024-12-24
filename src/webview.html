@@ -7,14 +7,81 @@
       <script src="../media/tabulator.min.js"></script>
       <link href="../media/tabulator.min.css" rel="stylesheet" />
       <link href="../media/styles.css" rel="stylesheet" />
-      <style id="dynamic-styles"></style>
+      <style id="dynamic-styles">
+         /* Initial styles */
+         .tabulator-cell {
+            font-family: var(--vscode-font-family, "Segoe WPC", "Segoe UI", sans-serif);
+         }
+      </style>
    </head>
    <body>
-      <div id="header">
-         <button id="requestDataButton">Request Data</button>
-         <label>
-            <input type="checkbox" id="toggleWrapCheckbox" /> Wrap Text
-         </label>
+      <div id="metadata" style="width: 100vw; display: flex; flex-direction: row; box-sizing: border-box;">
+         <div id="resizable" style="display: flex; width: 100vw; align-items: flex-start; position: relative; height: 1.5em;">
+            <button id="rotateButton"><span id="rotateLabel">&gt;</span></button>
+            <div style="flex: 1; display: flex; flex-direction: column;">
+               <div id="metaTopRow" class="editable-container" style="border: 1px solid #444;">
+                  <label>Displayed rows: </label>
+                  <span id="displayedRows" class="editable" contenteditable="true" title="Click to edit" style="max-width: 6em"></span>
+                  <label> of: <span id="total"></span>, limit: </label>
+                  <span id="limit" class="editable" contenteditable="true" title="Click to edit" style="max-width: 6em"></span>
+                  <span style="flex: 1; display: flex; flex-direction: column;"></span>
+                  <button id="requestDataButton">Request Data</button>
+                  <label>Font:
+                     <select id="font-selector" onchange="updateGlobalFont()">
+                        <option value="proportional">proportional</option>
+                        <option value="non-proportional">monospace</option>
+                     </select>
+                  </label>
+                  <label>
+                     <input type="checkbox" id="toggleWrapCheckbox" /> Wrap Text
+                  </label>
+               </div>        
+               <div id="toggleDiv">
+                  <div class="editable-container">
+                     <label>Source: </label><span id="source" class="editable" contenteditable="true" title="Click to edit"></span>
+                  </div>
+                  <div class="editable-container">
+                     <label>SELECT columns: </label><span id="columns" class="editable" contenteditable="true" title="Click to edit"></span>
+                  </div>
+                  <div class="editable-container">
+                     <label>Hidden columns: </label><span id="hiddenColumns" class="editable" contenteditable="true" title="Click to edit"></span>
+                  </div>
+                  <div class="editable-container">
+                     <label>Select rows WHERE: </label><span id="rows" class="editable" contenteditable="true" title="Click to edit"></span>
+                  </div>
+                  <div class="editable-container">
+                     <label>GROUP by Keys: </label>
+                     <span id="groupBy" class="editable" contenteditable="true" title="Click to edit" style="min-width: 50%;"></span>
+                     <label> Retrieve: </label>
+                     <label>
+                        <input type="radio" name="retrieve" value="all" checked>all
+                     </label>
+                     <label>
+                        <input type="radio" name="retrieve" value="nodups">noduplicates
+                     </label>
+                     <label>
+                        <input type="radio" name="retrieve" value="nodupkeys">nodupkeys
+                     </label>
+                     <label>
+                        <input type="radio" name="retrieve" value="duplicates">duplicates
+                     </label>
+                     <label>
+                        <input type="radio" name="retrieve" value="dupkeys">dupkeys
+                     </label>
+                  </div>
+                  <div class="editable-container">
+                     <label>HAVING: </label><span id="having" class="editable" contenteditable="true" title="Click to edit"></span>
+                  </div>
+                  <div class="editable-container">
+                     <label>ORDER by: </label><span id="orderBy" class="editable" contenteditable="true" title="Click to edit"></span>
+                  </div>
+                  <div>
+                     <label>Properties: <span id="fileProperties"> </span>
+                  </div>
+               </div>   
+            </div>
+            <div id="handle"></div>
+         </div>
       </div>
       <div id="tabulator-table"></div>
       <script src="../media/scripts.js"></script>
