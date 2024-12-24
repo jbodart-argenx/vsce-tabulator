@@ -51,6 +51,7 @@ body {
 }
 .wrap-text .tabulator-cell.overflow::after {
    content: "...↓";
+   color: darkblue;
    position: absolute;
    bottom: 1px;
    right: 1px;
